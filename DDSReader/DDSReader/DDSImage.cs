@@ -54,7 +54,17 @@ namespace DDSReader
 				throw new Exception("Unsupported pixel format (" + _image.Format + ")");
 		}
 
-		private void Process()
+        public void Save(string file, Point point, Size size)
+        {
+            if (_image.Format == Pfim.ImageFormat.Rgba32)
+                Save<Bgra32>(file, point, size);
+            else if (_image.Format == Pfim.ImageFormat.Rgb24)
+                Save<Bgr24>(file, point, size);
+            else
+                throw new Exception("Unsupported pixel format (" + _image.Format + ")");
+        }
+
+        private void Process()
 		{
 			if (_image == null)
 				throw new Exception("DDSImage image creation failed");
@@ -71,5 +81,14 @@ namespace DDSReader
 			image.Save(file);
 		}
 
-	}
+        private void Save<T>(string file, Point point, Size size)
+            where T : struct, IPixel<T>
+        {
+            Image<T> image = Image.LoadPixelData<T>(
+                _image.Data, _image.Width, _image.Height);
+
+            image.Mutate(x => x.Crop(new Rectangle(point, size)));
+            image.Save(file);
+        }
+    }
 }
