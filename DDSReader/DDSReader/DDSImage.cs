@@ -8,53 +8,57 @@ using System.IO;
 namespace DDSReader
 {
     public class DDSImage
-	{
-		private readonly Pfim.IImage _image;
+    {
+        private readonly Pfim.IImage _image;
 
-		public byte[] Data
-		{
-			get
-			{
-				if (_image != null)
-					return _image.Data;
-				else
-					return new byte[0];
-			}
-		}
+        public byte[] Data
+        {
+            get
+            {
+                if (_image != null)
+                    return _image.Data;
+                else
+                    return new byte[0];
+            }
+        }
 
-		public DDSImage(string file)
-		{
-			_image = Pfim.Pfim.FromFile(file);
-			Process();
-		}
+        public int Width => _image.Width;
 
-		public DDSImage(Stream stream)
-		{
-			if (stream == null)
-				throw new Exception("DDSImage ctor: Stream is null");
+        public int Height => _image.Height;
 
-			_image = Pfim.Dds.Create(stream, new Pfim.PfimConfig());
-			Process();
-		}
+        public DDSImage(string file)
+        {
+            _image = Pfim.Pfim.FromFile(file);
+            Process();
+        }
 
-		public DDSImage(byte[] data)
-		{
-			if (data == null || data.Length <= 0)
-				throw new Exception("DDSImage ctor: no data");
+        public DDSImage(Stream stream)
+        {
+            if (stream == null)
+                throw new Exception("DDSImage ctor: Stream is null");
 
-			_image = Pfim.Dds.Create(data, new Pfim.PfimConfig());
-			Process();
-		}
+            _image = Pfim.Dds.Create(stream, new Pfim.PfimConfig());
+            Process();
+        }
 
-		public void Save(string file)
-		{
-			if (_image.Format == Pfim.ImageFormat.Rgba32)
-				Save<Bgra32>(file);
-			else if (_image.Format == Pfim.ImageFormat.Rgb24)
-				Save<Bgr24>(file);
-			else
-				throw new Exception("Unsupported pixel format (" + _image.Format + ")");
-		}
+        public DDSImage(byte[] data)
+        {
+            if (data == null || data.Length <= 0)
+                throw new Exception("DDSImage ctor: no data");
+
+            _image = Pfim.Dds.Create(data, new Pfim.PfimConfig());
+            Process();
+        }
+
+        public void Save(string file)
+        {
+            if (_image.Format == Pfim.ImageFormat.Rgba32)
+                Save<Bgra32>(file);
+            else if (_image.Format == Pfim.ImageFormat.Rgb24)
+                Save<Bgr24>(file);
+            else
+                throw new Exception("Unsupported pixel format (" + _image.Format + ")");
+        }
 
         public void Save(string file, Point point, Size size)
         {
@@ -67,21 +71,21 @@ namespace DDSReader
         }
 
         private void Process()
-		{
-			if (_image == null)
-				throw new Exception("DDSImage image creation failed");
+        {
+            if (_image == null)
+                throw new Exception("DDSImage image creation failed");
 
-			if (_image.Compressed)
-				_image.Decompress();
-		}
+            if (_image.Compressed)
+                _image.Decompress();
+        }
 
-		private void Save<T>(string file)
-			where T : struct, IPixel<T>
-		{
-			Image<T> image = Image.LoadPixelData<T>(
-				_image.Data, _image.Width, _image.Height);
-			image.Save(file);
-		}
+        private void Save<T>(string file)
+            where T : struct, IPixel<T>
+        {
+            Image<T> image = Image.LoadPixelData<T>(
+                _image.Data, _image.Width, _image.Height);
+            image.Save(file);
+        }
 
         private void Save<T>(string file, Point point, Size size)
             where T : struct, IPixel<T>
